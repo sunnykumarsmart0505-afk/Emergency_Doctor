@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emergency SOS Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold text-red-600 mb-6 text-center">Emergency SOS Dashboard</h1>
+        
+        <div class="bg-white p-6 rounded-lg shadow-md mb-8">
+            <h2 class="text-xl font-semibold mb-4">Trigger SOS</h2>
+            <input type="number" id="patient_id" placeholder="Enter Your Patient ID" class="w-full p-2 mb-4 border rounded">
+            <button onclick="triggerSOS()" class="w-full bg-red-500 text-white py-2 rounded hover:bg-red-600 transition font-bold">
+                SOS EMERGENCY
+            </button>
+        </div>
+
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-xl font-semibold mb-4">Pending Emergencies</h2>
+            <div id="sos-list" class="space-y-3">
+                </div>
+        </div>
+    </div>
+
+    <script>
+        // 1. Trigger SOS Function
+        async function triggerSOS() {
+            const patientId = document.getElementById('patient_id').value;
+            if (!patientId) {
+                alert("Please enter your Patient ID!");
+                return;
+            }
+
+            try {
+                const response = await fetch('http://localhost:3000/trigger-sos', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        device_id: "Vinay_Phone", 
+                        patient_id: patientId, 
+                        latitude: 28.53, 
+                        longitude: 77.39 
+                    })
+                });
+                
+                if (response.ok) {
+                    alert("SOS Alert Triggered!");
+                    loadPendingSOS();
+                } else {
+                    alert("Failed to trigger SOS.");
+                }
+            } catch (err) { 
+                console.error("SOS Trigger Error:", err); 
+            }
+        }
+
+        // 2. Load Pending SOS List
+        async function loadPendingSOS() {
+            try {
+                const response = await fetch('http://localhost:3000/pending-sos');
+                const list = await response.json();
+                const container = document.getElementById('sos-list');
+                
+                if (list.length === 0) {
+                    container.innerHTML = "<p class='text-gray-500 p-4 text-center'>No pending emergencies.</p>";
+                    return;
+                }
+
+                container.innerHTML = list.map(item => `
+                    <div class="p-4 border rounded bg-gray-50 flex justify-between items-center shadow-sm">
+                        <span><strong>Device:</strong> ${item.device_id} | <strong>Session ID:</strong> ${item.session_id}</span>
+                        <button onclick="assignDoctor(${item.session_id})" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition">
+                            Assign Doctor
+                        </button>
+                    </div>
+                `).join('');
+            } catch (err) { 
+                console.error("Load SOS Error:", err); 
+            }
+        }
+
+        // 3. Assign Doctor Function
+        async function assignDoctor(sessionId) {
+            try {
+                const response = await fetch('http://localhost:3000/assign-doctor', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ session_id: sessionId, doctor_id: 1 })
+                });
+                
+                if (response.ok) {
+                    alert("Doctor Assigned successfully!");
+                    loadPendingSOS();
+                } else {
+                    alert("Error assigning doctor.");
+                }
+            } catch (err) { 
+                console.error("Assign Doctor Error:", err); 
+            }
+        }
+
+        // Initial Load and Auto-Refresh
+        loadPendingSOS();
+        setInterval(loadPendingSOS, 5000);
+    </script>
+</body>
+</html>

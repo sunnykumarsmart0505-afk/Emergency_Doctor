@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+```
+<title>Create Prescription</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+```
+
+</head>
+
+<body class="bg-gray-100 min-h-screen p-6">
+
+```
+<div class="max-w-3xl mx-auto">
+
+    <!-- Header -->
+    <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+        <h1 class="text-3xl font-bold text-blue-600">
+            Create Prescription
+        </h1>
+
+        <p class="text-gray-500 mt-2">
+            Doctor's Prescription Portal
+        </p>
+    </div>
+
+
+    <!-- Patient Information -->
+    <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+
+        <h2 class="text-xl font-bold mb-4">
+            Patient Information
+        </h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+            <div>
+                <label class="block font-semibold mb-1">
+                    Patient ID
+                </label>
+
+                <input
+                    type="text"
+                    id="patient_id"
+                    readonly
+                    class="w-full p-3 border rounded bg-gray-100"
+                >
+            </div>
+
+            <div>
+                <label class="block font-semibold mb-1">
+                    Session ID
+                </label>
+
+                <input
+                    type="text"
+                    id="session_id"
+                    readonly
+                    class="w-full p-3 border rounded bg-gray-100"
+                >
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- Prescription Details -->
+    <div class="bg-white p-6 rounded-lg shadow-md">
+
+        <h2 class="text-xl font-bold mb-6">
+            Prescription Details
+        </h2>
+
+
+        <!-- Diagnosis -->
+        <div class="mb-5">
+
+            <label class="block font-semibold mb-1">
+                Diagnosis
+            </label>
+
+            <textarea
+                id="diagnosis"
+                rows="3"
+                placeholder="Enter patient's diagnosis"
+                class="w-full p-3 border rounded"
+            ></textarea>
+
+        </div>
+
+
+        <!-- Medicine -->
+        <div class="mb-5">
+
+            <label class="block font-semibold mb-1">
+                Medicine
+            </label>
+
+            <input
+                type="text"
+                id="medicine"
+                placeholder="Example: Paracetamol 500mg"
+                class="w-full p-3 border rounded"
+            >
+
+        </div>
+
+
+        <!-- Dosage / Frequency / Duration -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-5">
+
+            <div>
+
+                <label class="block font-semibold mb-1">
+                    Dosage
+                </label>
+
+                <input
+                    type="text"
+                    id="dosage"
+                    placeholder="Example: 1 tablet"
+                    class="w-full p-3 border rounded"
+                >
+
+            </div>
+
+
+            <div>
+
+                <label class="block font-semibold mb-1">
+                    Frequency
+                </label>
+
+                <input
+                    type="text"
+                    id="frequency"
+                    placeholder="Example: 2 times/day"
+                    class="w-full p-3 border rounded"
+                >
+
+            </div>
+
+
+            <div>
+
+                <label class="block font-semibold mb-1">
+                    Duration
+                </label>
+
+                <input
+                    type="text"
+                    id="duration"
+                    placeholder="Example: 5 days"
+                    class="w-full p-3 border rounded"
+                >
+
+            </div>
+
+        </div>
+
+
+        <!-- Instructions -->
+        <div class="mb-6">
+
+            <label class="block font-semibold mb-1">
+                Instructions
+            </label>
+
+            <textarea
+                id="instructions"
+                rows="4"
+                placeholder="Enter instructions for the patient"
+                class="w-full p-3 border rounded"
+            ></textarea>
+
+        </div>
+
+
+        <!-- Buttons -->
+        <div class="flex gap-3 flex-wrap">
+
+            <button
+                onclick="savePrescription()"
+                id="saveButton"
+                class="bg-blue-600 text-white px-6 py-3 rounded hover:bg-blue-700 font-bold"
+            >
+                Save Prescription
+            </button>
+
+
+            <button
+                onclick="goBack()"
+                class="bg-gray-500 text-white px-6 py-3 rounded hover:bg-gray-600"
+            >
+                Back
+            </button>
+
+        </div>
+
+
+        <!-- Status -->
+        <div
+            id="status"
+            class="mt-5 text-center font-semibold"
+        ></div>
+
+    </div>
+
+</div>
+```
+
+<script>
+
+    // ==========================================
+    // Get Patient ID and Session ID
+    // ==========================================
+
+    const urlParams = new URLSearchParams(window.location.search);
+
+    const patientId = urlParams.get("patient_id");
+    const sessionId = urlParams.get("session_id");
+
+
+    // Display IDs
+
+    document.getElementById("patient_id").value =
+        patientId || "";
+
+    document.getElementById("session_id").value =
+        sessionId || "";
+
+
+    // ==========================================
+    // Save Prescription
+    // ==========================================
+
+    async function savePrescription() {
+
+        const diagnosis =
+            document.getElementById("diagnosis").value.trim();
+
+        const medicine =
+            document.getElementById("medicine").value.trim();
+
+        const dosage =
+            document.getElementById("dosage").value.trim();
+
+        const frequency =
+            document.getElementById("frequency").value.trim();
+
+        const duration =
+            document.getElementById("duration").value.trim();
+
+        const instructions =
+            document.getElementById("instructions").value.trim();
+
+
+        // ==========================================
+        // Validation
+        // ==========================================
+
+        if (!patientId) {
+
+            showError("Patient ID is missing.");
+
+            return;
+        }
+
+
+        if (!sessionId) {
+
+            showError("Session ID is missing.");
+
+            return;
+        }
+
+
+        if (!diagnosis) {
+
+            showError("Please enter diagnosis.");
+
+            return;
+        }
+
+
+        if (!medicine) {
+
+            showError("Please enter medicine name.");
+
+            return;
+        }
+
+
+        if (!dosage) {
+
+            showError("Please enter dosage.");
+
+            return;
+        }
+
+
+        if (!frequency) {
+
+            showError("Please enter frequency.");
+
+            return;
+        }
+
+
+        if (!duration) {
+
+            showError("Please enter duration.");
+
+            return;
+        }
+
+
+        // ==========================================
+        // Disable button
+        // ==========================================
+
+        const saveButton =
+            document.getElementById("saveButton");
+
+        saveButton.disabled = true;
+
+        saveButton.innerText = "Saving...";
+
+
+        try {
+
+            // ==========================================
+            // IMPORTANT:
+            // Backend expects doctor_id + medicines[]
+            // ==========================================
+
+            const prescriptionData = {
+
+                patient_id: Number(patientId),
+
+                session_id: Number(sessionId),
+
+                doctor_id: 1,
+
+                diagnosis: diagnosis,
+
+                medicines: [
+
+                    {
+                        medicine_name: medicine,
+
+                        dosage: dosage,
+
+                        frequency: frequency,
+
+                        duration: duration,
+
+                        instructions: instructions
+                    }
+
+                ],
+
+                doctor_notes: instructions
+            };
+
+
+            console.log(
+                "Sending prescription:",
+                prescriptionData
+            );
+
+
+            // ==========================================
+            // API Request
+            // ==========================================
+
+            const response = await fetch(
+                "http://localhost:3000/create-prescription",
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+
+                    body: JSON.stringify(
+                        prescriptionData
+                    )
+                }
+            );
+
+
+            // Get server response
+
+            const result = await response.json();
+
+
+            console.log(
+                "Server response:",
+                result
+            );
+
+
+            // ==========================================
+            // Success
+            // ==========================================
+
+            if (response.ok) {
+
+                document.getElementById("status").innerHTML = `
+                    <span class="text-green-600">
+                        ✅ Prescription saved successfully!
+                    </span>
+                `;
+                  setTimeout(() => {
+        window.location.href = "doctor.html";
+    }, 1500);
+                alert(
+                    "Prescription saved successfully!"
+                );
+
+            }
+
+            // ==========================================
+            // Server Error
+            // ==========================================
+
+            else {
+
+                showError(
+                    result.error ||
+                    "Failed to save prescription."
+                );
+
+                console.error(
+                    "Server Error:",
+                    result
+                );
+
+            }
+
+
+        } catch (error) {
+
+            console.error(
+                "Prescription Error:",
+                error
+            );
+
+
+            showError(
+                "Cannot connect to server. Make sure server.js is running."
+            );
+
+        }
+
+
+        // Enable button again
+
+        saveButton.disabled = false;
+
+        saveButton.innerText =
+            "Save Prescription";
+    }
+
+
+    // ==========================================
+    // Error Message
+    // ==========================================
+
+    function showError(message) {
+
+        document.getElementById("status").innerHTML = `
+            <span class="text-red-600">
+                ❌ ${message}
+            </span>
+        `;
+    }
+
+
+    // ==========================================
+    // Back Button
+    // ==========================================
+
+    function goBack() {
+
+        window.location.href =
+            "doctor.html";
+    }
+
+</script>
+
+</body>
+</html>

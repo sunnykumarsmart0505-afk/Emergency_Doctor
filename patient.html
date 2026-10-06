@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Patient Registration</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-md mx-auto bg-white p-6 rounded-lg shadow-md">
+        <h1 class="text-2xl font-bold mb-6 text-blue-600">Patient Registration</h1>
+        
+        <div class="space-y-4">
+            <input type="text" id="name" placeholder="Full Name" class="w-full p-2 border rounded">
+            <input type="text" id="blood" placeholder="Blood Group (e.g., O+)" class="w-full p-2 border rounded">
+            <textarea id="allergies" placeholder="Allergies (None if none)" class="w-full p-2 border rounded"></textarea>
+            
+            <button onclick="registerPatient()" class="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600">
+                Register Now
+            </button>
+        </div>
+
+        <div id="status" class="mt-4 font-bold text-center"></div>
+    </div>
+
+    <script>
+        async function registerPatient() {
+            const data = {
+                name: document.getElementById('name').value,
+                blood_group: document.getElementById('blood').value,
+                allergies: document.getElementById('allergies').value
+            };
+
+            const response = await fetch('http://localhost:3000/register-patient', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                document.getElementById('status').innerHTML = 
+                    `<span class="text-green-600">Registered! Your ID: ${result.patient_id}</span>`;
+            } else {
+                alert("Registration Failed!");
+            }
+        }
+    </script>
+</body>
+</html>

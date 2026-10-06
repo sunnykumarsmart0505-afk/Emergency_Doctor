@@ -1,0 +1,381 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Admin Dashboard - Emergency Doctor</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-slate-100 min-h-screen">
+
+    <!-- Header -->
+    <header class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center">
+
+        <div>
+            <h1 class="text-2xl font-bold">
+                Emergency Doctor
+            </h1>
+
+            <p class="text-slate-400 text-sm">
+                Admin Dashboard
+            </p>
+        </div>
+
+        <button onclick="logout()"
+            class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded-lg font-semibold">
+            Logout
+        </button>
+
+    </header>
+
+
+    <!-- Main -->
+    <main class="max-w-7xl mx-auto p-6">
+
+        <h2 class="text-2xl font-bold text-slate-800 mb-6">
+            System Overview
+        </h2>
+
+
+        <!-- Statistics -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
+
+            <div class="bg-white rounded-xl shadow p-6">
+                <p class="text-gray-500">
+                    Total Patients
+                </p>
+
+                <h3 id="totalPatients"
+                    class="text-3xl font-bold text-blue-600 mt-2">
+                    0
+                </h3>
+            </div>
+
+
+            <div class="bg-white rounded-xl shadow p-6">
+                <p class="text-gray-500">
+                    Pending SOS
+                </p>
+
+                <h3 id="pendingSOS"
+                    class="text-3xl font-bold text-red-600 mt-2">
+                    0
+                </h3>
+            </div>
+
+
+            <div class="bg-white rounded-xl shadow p-6">
+                <p class="text-gray-500">
+                    System Status
+                </p>
+
+                <h3 class="text-3xl font-bold text-green-600 mt-2">
+                    Online
+                </h3>
+            </div>
+
+        </div>
+
+
+        <!-- Patients -->
+        <div class="bg-white rounded-xl shadow p-6 mb-8">
+
+            <div class="flex justify-between items-center mb-4">
+
+                <h2 class="text-xl font-bold text-slate-800">
+                    Registered Patients
+                </h2>
+
+                <button onclick="loadPatients()"
+                    class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                    Refresh
+                </button>
+
+            </div>
+
+
+            <div class="overflow-x-auto">
+
+                <table class="w-full text-left">
+
+                    <thead class="bg-slate-100">
+
+                        <tr>
+                            <th class="p-3">Patient ID</th>
+                            <th class="p-3">Name</th>
+                            <th class="p-3">Blood Group</th>
+                            <th class="p-3">Allergies</th>
+                        </tr>
+
+                    </thead>
+
+                    <tbody id="patientsTable">
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+
+        <!-- Pending SOS -->
+        <div class="bg-white rounded-xl shadow p-6">
+
+            <div class="flex justify-between items-center mb-4">
+
+                <h2 class="text-xl font-bold text-slate-800">
+                    Pending Emergency SOS
+                </h2>
+
+                <button onclick="loadPendingSOS()"
+                    class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700">
+                    Refresh
+                </button>
+
+            </div>
+
+
+            <div class="overflow-x-auto">
+
+                <table class="w-full text-left">
+
+                    <thead class="bg-slate-100">
+
+                        <tr>
+                            <th class="p-3">Session ID</th>
+                            <th class="p-3">Patient ID</th>
+                            <th class="p-3">Latitude</th>
+                            <th class="p-3">Longitude</th>
+                            <th class="p-3">Status</th>
+                        </tr>
+
+                    </thead>
+
+                    <tbody id="sosTable">
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </main>
+
+
+<script>
+
+const API = "http://localhost:3000";
+
+
+// ===============================
+// Check Admin Login
+// ===============================
+
+const role = localStorage.getItem("role");
+
+if (role !== "admin") {
+
+    alert("Admin access required.");
+
+    window.location.href = "login.html";
+}
+
+
+// ===============================
+// Load Patients
+// ===============================
+
+async function loadPatients() {
+
+    try {
+
+        const response = await fetch(`${API}/patients`);
+
+        const patients = await response.json();
+
+        document.getElementById("totalPatients").textContent =
+            patients.length;
+
+        const table =
+            document.getElementById("patientsTable");
+
+        table.innerHTML = "";
+
+        if (patients.length === 0) {
+
+            table.innerHTML = `
+                <tr>
+                    <td colspan="4"
+                        class="p-4 text-center text-gray-500">
+                        No patients registered
+                    </td>
+                </tr>
+            `;
+
+            return;
+        }
+
+
+        patients.forEach(patient => {
+
+            table.innerHTML += `
+
+                <tr class="border-b">
+
+                    <td class="p-3">
+                        ${patient.patient_id}
+                    </td>
+
+                    <td class="p-3 font-medium">
+                        ${patient.name}
+                    </td>
+
+                    <td class="p-3">
+                        ${patient.blood_group || "-"}
+                    </td>
+
+                    <td class="p-3">
+                        ${patient.allergies || "None"}
+                    </td>
+
+                </tr>
+
+            `;
+
+        });
+
+    } catch (error) {
+
+        console.error(error);
+
+    }
+
+}
+
+
+// ===============================
+// Load Pending SOS
+// ===============================
+
+async function loadPendingSOS() {
+
+    try {
+
+        const response =
+            await fetch(`${API}/pending-sos`);
+
+        const sessions = await response.json();
+
+        document.getElementById("pendingSOS").textContent =
+            sessions.length;
+
+        const table =
+            document.getElementById("sosTable");
+
+        table.innerHTML = "";
+
+
+        if (sessions.length === 0) {
+
+            table.innerHTML = `
+                <tr>
+                    <td colspan="5"
+                        class="p-4 text-center text-gray-500">
+                        No pending SOS
+                    </td>
+                </tr>
+            `;
+
+            return;
+        }
+
+
+        sessions.forEach(session => {
+
+            table.innerHTML += `
+
+                <tr class="border-b">
+
+                    <td class="p-3">
+                        ${session.session_id}
+                    </td>
+
+                    <td class="p-3">
+                        ${session.patient_id}
+                    </td>
+
+                    <td class="p-3">
+                        ${session.latitude ?? "-"}
+                    </td>
+
+                    <td class="p-3">
+                        ${session.longitude ?? "-"}
+                    </td>
+
+                    <td class="p-3">
+
+                        <span class="bg-red-100 text-red-700
+                                     px-3 py-1 rounded-full text-sm">
+                            ${session.status}
+                        </span>
+
+                    </td>
+
+                </tr>
+
+            `;
+
+        });
+
+    } catch (error) {
+
+        console.error(error);
+
+    }
+
+}
+
+
+// ===============================
+// Logout
+// ===============================
+
+function logout() {
+
+    localStorage.clear();
+
+    window.location.href = "login.html";
+
+}
+
+
+// ===============================
+// Initial Load
+// ===============================
+
+loadPatients();
+
+loadPendingSOS();
+
+
+// Refresh every 5 seconds
+setInterval(() => {
+
+    loadPatients();
+    loadPendingSOS();
+
+}, 5000);
+
+</script>
+
+</body>
+
+</html>
+```
